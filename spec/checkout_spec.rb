@@ -19,7 +19,7 @@ RSpec.describe Checkout do
     let(:checkout) { Checkout.new(pricing_rules, discounts) }
     let(:discounts) { {} }
 
-    context 'when no offers apply' do
+    context 'when no discounts apply' do
       before do
         checkout.scan(:apple)
         checkout.scan(:orange)
@@ -38,12 +38,12 @@ RSpec.describe Checkout do
         checkout.scan(:apple)
       end
 
-      it 'returns the discounted price for the basket' do
-        expect(total).to eq(10)
+      it 'applies the discount correctly' do
+        expect(total).to eq(10) # One apple is free
       end
     end
 
-    context 'when a Buy 3 Get 1 Free discount applies on mangoes' do
+    context 'when a Buy 3 Get 1 Free discount applies on mangos' do
       let(:discounts) { { mango: BuyThreeGetOneFree.new } }
 
       before do
@@ -53,8 +53,21 @@ RSpec.describe Checkout do
         checkout.scan(:mango)
       end
 
-      it 'returns the discounted price for the mangoes' do
-        expect(total).to eq(600) # 3 paid, 1 free
+      it 'applies the Buy 3 Get 1 Free discount correctly' do
+        expect(total).to eq(600) # 3 mangoes paid, 1 is free
+      end
+    end
+
+    context 'when a Half Price discount applies on pineapples' do
+      let(:discounts) { { pineapple: HalfPriceDiscount.new } }
+
+      before do
+        checkout.scan(:pineapple)
+        checkout.scan(:pineapple)
+      end
+
+      it 'applies the Half Price discount correctly' do
+        expect(total).to eq(100) # Each pineapple is half price, so 50 each
       end
     end
   end

@@ -19,6 +19,13 @@ class BuyThreeGetOneFree < Discount
   end
 end
 
+# Half Price Discount
+class HalfPriceDiscount < Discount
+  def apply(item, count, prices)
+    (prices.fetch(item) / 2.0) * count
+  end
+end
+
 # Checkout class with dynamic discount handling
 class Checkout
   attr_reader :prices, :discounts
