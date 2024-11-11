@@ -1,9 +1,35 @@
-class Checkout
-  attr_reader :prices
-  private :prices
 
-  def initialize(prices)
+# Base Discount class for different discount strategies
+class Discount
+  def apply(item, count, prices)
+    prices.fetch(item) * count
+  end
+end
+
+
+# Buy One Get One Free
+class BuyOneGetOneFree < Discount
+  def apply(item, count, prices)
+    (count / 2 + count % 2) * prices.fetch(item)
+  end
+end
+
+# Buy 3 Get 1 Free
+class BuyThreeGetOneFree < Discount
+  def apply(item, count, prices)
+    (count - count / 4) * prices.fetch(item)
+  end
+end
+
+
+# Checkout class with refactored discount handling
+class Checkout
+  attr_reader :prices, :discounts
+  private :prices, :discounts
+
+  def initialize(prices, discounts = {})
     @prices = prices
+    @discounts = discounts
   end
 
   def scan(item)
@@ -11,33 +37,16 @@ class Checkout
   end
 
   def total
-    total = 0
-
-    basket.inject(Hash.new(0)) { |items, item| items[item] += 1; items }.each do |item, count|
-      if item == :apple || item == :pear
-        if (count % 2 == 0)
-          total += prices.fetch(item) * (count / 2)
-        else
-          total += prices.fetch(item) * count
-        end
-      elsif item == :banana || item == :pineapple
-        if item == :pineapple
-          total += (prices.fetch(item) / 2)
-          total += (prices.fetch(item)) * (count - 1)
-        else
-          total += (prices.fetch(item) / 2) * count
-        end
-      else
-        total += prices.fetch(item) * count
-      end
+    basket_count = basket.tally
+    basket_count.sum do |item, count|
+      discount = discounts[item] || Discount.new
+      discount.apply(item, count, prices)
     end
-
-    total
   end
 
   private
 
   def basket
-    @basket ||= Array.new
+    @basket ||= []
   end
 end
