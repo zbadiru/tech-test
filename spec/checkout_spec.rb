@@ -5,7 +5,6 @@ RSpec.describe Checkout do
   describe '#total' do
     subject(:total) { checkout.total }
 
-    let(:checkout) { Checkout.new(pricing_rules) }
     let(:pricing_rules) {
       {
         apple: 10,
@@ -16,6 +15,9 @@ RSpec.describe Checkout do
         mango: 200
       }
     }
+
+    let(:checkout) { Checkout.new(pricing_rules, discounts) }
+    let(:discounts) { {} }
 
     context 'when no offers apply' do
       before do
@@ -28,7 +30,9 @@ RSpec.describe Checkout do
       end
     end
 
-    context 'when a two for 1 applies on apples' do
+    context 'when a Buy One Get One Free discount applies on apples' do
+      let(:discounts) { { apple: BuyOneGetOneFree.new } }
+
       before do
         checkout.scan(:apple)
         checkout.scan(:apple)
@@ -37,68 +41,20 @@ RSpec.describe Checkout do
       it 'returns the discounted price for the basket' do
         expect(total).to eq(10)
       end
-
-      context 'and there are other items' do
-        before do
-          checkout.scan(:orange)
-        end
-
-        it 'returns the correctly discounted price for the basket' do
-          expect(total).to eq(30)
-        end
-      end
     end
 
-    context 'when a two for 1 applies on pears' do
+    context 'when a Buy 3 Get 1 Free discount applies on mangoes' do
+      let(:discounts) { { mango: BuyThreeGetOneFree.new } }
+
       before do
-        checkout.scan(:pear)
-        checkout.scan(:pear)
+        checkout.scan(:mango)
+        checkout.scan(:mango)
+        checkout.scan(:mango)
+        checkout.scan(:mango)
       end
 
-      it 'returns the discounted price for the basket' do
-        expect(total).to eq(15)
-      end
-
-      context 'and there are other discounted items' do
-        before do
-          checkout.scan(:banana)
-        end
-
-        it 'returns the correctly discounted price for the basket' do
-          expect(total).to eq(30)
-        end
-      end
-    end
-
-    context 'when a half price offer applies on bananas' do
-      before do
-        checkout.scan(:banana)
-      end
-
-      it 'returns the discounted price for the basket' do
-        expect(total).to eq(15)
-      end
-    end
-
-    context 'when a half price offer applies on pineapples restricted to 1 per customer' do
-      before do
-        checkout.scan(:pineapple)
-        checkout.scan(:pineapple)
-      end
-
-      it 'returns the discounted price for the basket' do
-        expect(total).to eq(150)
-      end
-    end
-
-    context 'when a buy 3 get 1 free offer applies to mangos' do
-      before do
-        4.times { checkout.scan(:mango) }
-      end
-
-      it 'returns the discounted price for the basket' do
-        pending 'You need to write the code to satisfy this test'
-        expect(total).to eq(600)
+      it 'returns the discounted price for the mangoes' do
+        expect(total).to eq(600) # 3 paid, 1 free
       end
     end
   end

@@ -1,4 +1,3 @@
-
 # Base Discount class for different discount strategies
 class Discount
   def apply(item, count, prices)
@@ -6,27 +5,26 @@ class Discount
   end
 end
 
-
-# Buy One Get One Free
+# Buy One Get One Free Discount
 class BuyOneGetOneFree < Discount
   def apply(item, count, prices)
     (count / 2 + count % 2) * prices.fetch(item)
   end
 end
 
-# Buy 3 Get 1 Free
+# Buy 3 Get 1 Free Discount
 class BuyThreeGetOneFree < Discount
   def apply(item, count, prices)
     (count - count / 4) * prices.fetch(item)
   end
 end
 
-
-# Checkout class with refactored discount handling
+# Checkout class with dynamic discount handling
 class Checkout
   attr_reader :prices, :discounts
   private :prices, :discounts
 
+  # Initialize with prices and an optional discounts hash
   def initialize(prices, discounts = {})
     @prices = prices
     @discounts = discounts
@@ -38,11 +36,12 @@ class Checkout
   end
 
   # Calculate the total price with applicable discounts
-  # Tally counts of each item in the basket
-  # Sum up the price per item after applying the relevant discount strategy
-  # Select the discount strategy for the item, defaulting to no discount
   def total
-    basket_count = basket.tally
+    # Manually tally item counts
+    basket_count = Hash.new(0)
+    basket.each { |item| basket_count[item] += 1 }
+
+    # Sum up the price per item after applying the relevant discount strategy
     basket_count.sum do |item, count|
       discount = discounts.fetch(item, Discount.new)
       discount.apply(item, count, prices)
