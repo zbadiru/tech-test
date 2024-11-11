@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'checkout'
+require 'discount'
 
 RSpec.describe Checkout do
   describe '#total' do
