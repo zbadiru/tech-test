@@ -32,20 +32,26 @@ class Checkout
     @discounts = discounts
   end
 
+  # Add an item to the basket
   def scan(item)
     basket << item.to_sym
   end
 
+  # Calculate the total price with applicable discounts
+  # Tally counts of each item in the basket
+  # Sum up the price per item after applying the relevant discount strategy
+  # Select the discount strategy for the item, defaulting to no discount
   def total
     basket_count = basket.tally
     basket_count.sum do |item, count|
-      discount = discounts[item] || Discount.new
+      discount = discounts.fetch(item, Discount.new)
       discount.apply(item, count, prices)
     end
   end
 
   private
 
+  # Initialize or retrieve the basket array
   def basket
     @basket ||= []
   end
